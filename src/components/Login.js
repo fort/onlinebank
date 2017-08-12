@@ -5,15 +5,24 @@ USERS['user_1'] = 'pass';
 USERS['user_2'] = 'pass';
 USERS['user_3'] = 'pass';
 
-//TODO: store, display error input
+const Notification = (paylaod) => {
+  let {type, message} = paylaod;
+  let className = `notification ${type}`;
+  return (
+    <div className={className}>{message}</div>
+  )
+}
 
 class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      logged: false,
       login: '',
       password: '',
+      errors: {},
     }
+    this.errors = {};
   }
 
   onChange(event) {
@@ -23,35 +32,58 @@ class Login extends Component {
     this.setState(state);
   }
 
+  setError(key, message) {
+    if(!this.errors.hasOwnProperty(key)) {
+      this.errors[key] = [];
+    }
+    this.errors[key].push(message);
+  }
+
   auth(e) {
-    let {login, password} = this.state;
+    this.setState({logged:false});
+    this.errors = {};
+    let {login, password, errors} = this.state;
 
-    if( !USERS.hasOwnProperty(login) ){
-      console.log('login not found!');
-      return false;
+    let updateState = '';
+    let valid = true;
+    let ret = true;
+
+    //VALIDATION
+    if( login.length < 4 ){
+      this.setError('login', 'login must not empty or less then 4 chars');
+      valid = false;
     }
 
-    if( !this.state.login ){
-      console.log('login must not empty');
-      return false;
+    if( password.length < 4 ){
+      this.setError('password', 'password must not empty or less then 4 chars');
+      valid = false;
     }
 
-    if( !this.state.password ){
-      console.log('password must not empty');
-      return false;
+    if( valid ) {
+      if(!(USERS.hasOwnProperty(login) && USERS[login] === password) ) {
+        this.setError('general', 'authentication faild!');
+        ret = false;
+      }
     }
 
-    if( USERS[login] !== password ) {
-      console.log('password incorrect!');
-      return false;
+    if( ret && valid ) {
+      this.setState({logged:true});
     }
-
-    console.log('You have authenticated succesfully!');
-    return true;
-
+    this.setState({errors: this.errors});
   }
 
   render() {
+    let validForm = Object.getOwnPropertyNames(this.state.errors).length === 0;
+
+    let NotificationBlock = '';
+    if ( this.state.errors.hasOwnProperty('general') &&  Object.getOwnPropertyNames(this.state.errors.general).length !== 0 ) {
+      NotificationBlock = <Notification type="error" message={this.state.errors.general} />
+    }
+
+    if( this.state.logged ) {
+      NotificationBlock = <Notification type="success" message="Authentication is successfull!" />
+    }
+
     return(
       <div className="Login-screen">
         <div className="Login-screen-title">Login screen</div>
@@ -64,6 +96,12 @@ class Login extends Component {
                  }
                } }
         />
+        {
+          !validForm ?
+            <span className="error_field">{this.state.errors.login}</span>
+            : ''
+        }
+
         <input type="password" name="password"
                placeholder="your password"
                onChange={this.onChange.bind(this)}
@@ -73,7 +111,19 @@ class Login extends Component {
                  }
                } }
         />
+
+        {
+          !validForm ?
+            <span className="error">{this.state.errors.password}</span>
+            : ''
+        }
+
         <button name="submit" onClick={this.auth.bind(this)}>SignIn</button>
+
+        {
+          NotificationBlock
+        }
+
       </div>
     )
   }

@@ -28,3 +28,22 @@
 .Login-screen-title {
     font-size: 30px;
 }
+
+.notification {
+    padding: 10px;
+    margin: 20px;
+    display: block;
+}
+
+.error {
+    background-color: red;
+}
+
+.success {
+    background-color: green;
+}
+
+.error_field {
+
+    background-color: red;
+}
