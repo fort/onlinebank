@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import Profile from './components/Profile';
-import Login from './components/Login';
+import Profile from './Profile';
+import Login from './Login';
 
-import './App.css';
+import '../App.css';
 
 class App extends Component {
   constructor(props) {
