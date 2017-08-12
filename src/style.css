@@ -1,0 +1,30 @@
+.App {
+    max-width: 900px;
+    width: 100%;
+    margin: auto;
+    font-family: sans-serif;
+    text-align: center;
+    /*border:solid 1px;*/
+}
+
+.Login-screen {
+    display: inline-block;
+    /*why does it align by left when remove this rule?*/
+    /*border: solid 2px;*/
+}
+
+.Login-screen input{
+    display: block;
+    margin: 5px;
+    font-size: 20px;
+    padding: 10px;
+    text-align: center;
+}
+.Login-screen button {
+    font-size: 20px;
+    border-radius: 1px;
+}
+
+.Login-screen-title {
+    font-size: 30px;
+}
