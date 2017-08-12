@@ -23,7 +23,7 @@ store.dispatch({
 //   console.log( state.getState() );
 // } );
 
-console.log(store.getState());
+// console.log(store.getState());
 
 // ReactDOM.render(
 //   <App />,
