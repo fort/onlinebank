@@ -35,6 +35,39 @@ class Login extends Component {
       errors: {},
     }
     this.errors = {};
+
+    this.validateRules = {
+      'login': {
+        'required' : true,
+        'rules': {
+          'maxLength': {
+            value: 6,
+            errorMessage: " must not exceed then 2 symbols",
+          },
+          'minLength': {
+            value: 2,
+            errorMessage: " must be more then 2 symbols",
+          },
+        }
+      },
+
+      'password': {
+        'required' : true,
+        'rules': {
+          'maxLength': {
+            value: 6,
+            errorMessage: " must not exceed then 2 symbols",
+          },
+          'minLength': {
+            value: 2,
+            errorMessage: " must be more then 2 symbols",
+          },
+        }
+      },
+
+    }
+
+
   }
 
   onChange(event) {
@@ -57,17 +90,36 @@ class Login extends Component {
    */
   formValidate() {
     this.errors = {};
-    let {login, password, errors} = this.state;
+    let { login, password } = this.state;
 
     let valid = true;
     let ret = true;
 
-    this.validateField('login', login, 'maxLength', {value:6, errorMessage: "login must not exceed 6 symbol"} );
-    this.validateField('login', login, 'minLength', {value:2, errorMessage: "login must be more then 2 symbol"} );
+    if( Object.size(this.validateRules) ) {
+      for( let fieldKey in this.validateRules ) {
 
-    this.validateField('password', password, 'maxLength', {value:6, errorMessage: "password must not exceed 6 symbol"} );
-    this.validateField('password', password, 'minLength', {value:2, errorMessage: "password must be more then 2 symbol"} );
+        if( this.validateRules[fieldKey]['required'] ) {
+          for( let ruleName in this.validateRules[fieldKey]['rules'] ) {
+            let ruleParams = this.validateRules[fieldKey]['rules'][ruleName];
+            console.log("rule name ", ruleName);
+            console.log("rule params ", ruleParams);
 
+            switch ( fieldKey ) {
+              case 'login':{
+                this.validateField('login', login, ruleName, ruleParams );
+                break;
+              }
+              case 'password':{
+                this.validateField('password', password, ruleName, ruleParams );
+                break;
+              }
+              default:{
+              }
+            }
+          }
+        }
+      }
+    }
 
     //all fields validation are correct
     if( !Object.size(this.errors) ) {
@@ -135,8 +187,27 @@ class Login extends Component {
   onBlurField(e) {
     let {name, value} = e.target;
 
-    this.validateField(name, value, 'maxLength', {value:6, errorMessage: name +" must not exceed 6 symbol"} );
-    this.validateField(name, value, 'minLength', {value:2, errorMessage: name + " must be more then 2 symbol"} );
+    if( Object.size(this.validateRules) ) {
+
+      if( this.validateRules.hasOwnProperty(name) && this.validateRules[name]['required'] ) {
+        for( let ruleName in this.validateRules[name]['rules'] ) {
+          let ruleParams = this.validateRules[name]['rules'][ruleName];
+
+          switch ( name ) {
+            case 'login':{
+              this.validateField('login', value, ruleName, ruleParams );
+              break;
+            }
+            case 'password':{
+              this.validateField('password', value, ruleName, ruleParams );
+              break;
+            }
+            default:{
+            }
+          }
+        }
+      }
+    }
 
     this.setState({errors: this.errors});
 
