@@ -1,9 +1,20 @@
 import React, { Component } from 'react';
 
+//TODO: storing and retrieving from network
 const USERS = {};
 USERS['user_1'] = 'pass';
 USERS['user_2'] = 'pass';
 USERS['user_3'] = 'pass';
+
+
+//TODO: move to helpers
+Object.size = function(obj) {
+  var size = 0, key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) size++;
+  }
+  return size;
+};
 
 const Notification = (paylaod) => {
   let {type, message} = paylaod;
@@ -17,6 +28,7 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      initialLoading : true,
       logged: false,
       login: '',
       password: '',
@@ -39,37 +51,95 @@ class Login extends Component {
     this.errors[key].push(message);
   }
 
-  auth(e) {
-    this.setState({logged:false});
+  /**
+   * Validate form, append element's errors. Updates state with errors
+   * @returns {boolean}
+   */
+  formValidate() {
     this.errors = {};
     let {login, password, errors} = this.state;
 
-    let updateState = '';
     let valid = true;
     let ret = true;
 
-    //VALIDATION
-    if( login.length < 4 ){
-      this.setError('login', 'login must not empty or less then 4 chars');
-      valid = false;
-    }
+    this.validateField('login', login, 'maxLength', {value:6, errorMessage: "login must not exceed 6 symbol"} );
+    this.validateField('login', login, 'minLength', {value:2, errorMessage: "login must be more then 2 symbol"} );
 
-    if( password.length < 4 ){
-      this.setError('password', 'password must not empty or less then 4 chars');
-      valid = false;
-    }
+    this.validateField('password', password, 'maxLength', {value:6, errorMessage: "password must not exceed 6 symbol"} );
+    this.validateField('password', password, 'minLength', {value:2, errorMessage: "password must be more then 2 symbol"} );
 
-    if( valid ) {
+
+    //all fields validation are correct
+    if( !Object.size(this.errors) ) {
+      //Authentication process
+      //TODO: make async network request
       if(!(USERS.hasOwnProperty(login) && USERS[login] === password) ) {
         this.setError('general', 'authentication faild!');
         ret = false;
       }
+    } else { /* error fields validation*/
+      ret = false;
     }
 
-    if( ret && valid ) {
+    this.setState({errors: this.errors});
+
+    return ret;
+  }
+
+  /**
+   * Validate form element, collects error message appending to array
+   *
+   * @param fieldName
+   * @param fieldValue
+   * @param validatorName
+   * @param Object params {value: 'value', errorMessage: 'errorMessage' }
+   * @returns {boolean}
+   */
+  validateField(fieldName, fieldValue, validatorName, params) {
+    let ret = true;
+
+    switch (validatorName) {
+      case 'maxLength': {
+        if( fieldValue.length > params.value ) {
+          ret = false;
+          this.setError(fieldName, params.errorMessage);
+        }else{
+          delete this.errors[fieldName];
+        }
+        break;
+      }
+      case 'minLength': {
+        if( fieldValue.length < params.value ) {
+          ret = false;
+          this.setError(fieldName, params.errorMessage);
+        }else {
+          delete this.errors[fieldName];
+        }
+        break;
+      }
+      default:{
+
+      }
+    }
+    return ret;
+  }
+
+  auth(e) {
+    this.setState({logged:false});
+    let valid = this.formValidate();
+    if( valid ) {
       this.setState({logged:true});
     }
+  }
+
+  onBlurField(e) {
+    let {name, value} = e.target;
+
+    this.validateField(name, value, 'maxLength', {value:6, errorMessage: name +" must not exceed 6 symbol"} );
+    this.validateField(name, value, 'minLength', {value:2, errorMessage: name + " must be more then 2 symbol"} );
+
     this.setState({errors: this.errors});
+
   }
 
   render() {
@@ -95,9 +165,14 @@ class Login extends Component {
                    this.auth();
                  }
                } }
+               onBlur={this.onBlurField.bind(this)}
+
+               onFocus={(event) => {
+                 // console.log(event.target);
+               }}
         />
         {
-          !validForm ?
+          this.state.errors.login ?
             <span className="error_field">{this.state.errors.login}</span>
             : ''
         }
@@ -110,10 +185,14 @@ class Login extends Component {
                    this.auth();
                  }
                } }
+               onBlur={this.onBlurField.bind(this)}
+               onFocus={(event) => {
+                 // console.log(event.target);
+               }}
         />
 
         {
-          !validForm ?
+          this.state.errors.password ?
             <span className="error">{this.state.errors.password}</span>
             : ''
         }
