@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import actions from '../actions';
-import Profile from './Profile';
-import Login from './Login';
-import '../App.css';
+import actions from '../../actions/index';
+import Profile from '../Profile';
+import Login from '../Login';
+import '../../App.css';
 
 class App extends Component {
   constructor(props) {
@@ -18,7 +18,15 @@ class App extends Component {
     const screen = this.state.logged ? <Profile /> : <Login />;
     return (
       <div className="App">
-        {screen}
+        <div className="App-left">
+          {/*HERE will be draggable widgets*/}
+        </div>
+        <div className="App-content">
+          {screen}
+        </div>
+        <div className="App-right">
+          {/*HERE will be devTool bar*/}
+        </div>
       </div>
     )
   }

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Validator from '../libs/Validator';
 
 //TODO: storing and retrieving from network
 const USERS = {};
@@ -42,11 +43,11 @@ class Login extends Component {
         'rules': {
           'maxLength': {
             value: 6,
-            errorMessage: " must not exceed then 2 symbols",
+            errorMessage: " Login must not exceed then 2 symbols",
           },
           'minLength': {
             value: 2,
-            errorMessage: " must be more then 2 symbols",
+            errorMessage: " Login must be more then 2 symbols",
           },
         }
       },
@@ -56,17 +57,17 @@ class Login extends Component {
         'rules': {
           'maxLength': {
             value: 6,
-            errorMessage: " must not exceed then 2 symbols",
+            errorMessage: " Password must not exceed then 2 symbols",
           },
           'minLength': {
             value: 2,
-            errorMessage: " must be more then 2 symbols",
+            errorMessage: " Password must be more then 2 symbols",
           },
         }
       },
-
     }
 
+    Validator.setRules(this.validateRules);
 
   }
 
@@ -95,83 +96,19 @@ class Login extends Component {
     let valid = true;
     let ret = true;
 
-    if( Object.size(this.validateRules) ) {
-      for( let fieldKey in this.validateRules ) {
+    Validator.setData({login, password});
+    valid = Validator.validate();
 
-        if( this.validateRules[fieldKey]['required'] ) {
-          for( let ruleName in this.validateRules[fieldKey]['rules'] ) {
-            let ruleParams = this.validateRules[fieldKey]['rules'][ruleName];
-            console.log("rule name ", ruleName);
-            console.log("rule params ", ruleParams);
-
-            switch ( fieldKey ) {
-              case 'login':{
-                this.validateField('login', login, ruleName, ruleParams );
-                break;
-              }
-              case 'password':{
-                this.validateField('password', password, ruleName, ruleParams );
-                break;
-              }
-              default:{
-              }
-            }
-          }
-        }
-      }
-    }
-
-    //all fields validation are correct
-    if( !Object.size(this.errors) ) {
+    if( valid ) {
       //Authentication process
       //TODO: make async network request
       if(!(USERS.hasOwnProperty(login) && USERS[login] === password) ) {
-        this.setError('general', 'authentication faild!');
+        this.setState( {errors: {general:"authentication faild!"}} );
         ret = false;
       }
-    } else { /* error fields validation*/
+    }else {
       ret = false;
-    }
-
-    this.setState({errors: this.errors});
-
-    return ret;
-  }
-
-  /**
-   * Validate form element, collects error message appending to array
-   *
-   * @param fieldName
-   * @param fieldValue
-   * @param validatorName
-   * @param Object params {value: 'value', errorMessage: 'errorMessage' }
-   * @returns {boolean}
-   */
-  validateField(fieldName, fieldValue, validatorName, params) {
-    let ret = true;
-
-    switch (validatorName) {
-      case 'maxLength': {
-        if( fieldValue.length > params.value ) {
-          ret = false;
-          this.setError(fieldName, params.errorMessage);
-        }else{
-          delete this.errors[fieldName];
-        }
-        break;
-      }
-      case 'minLength': {
-        if( fieldValue.length < params.value ) {
-          ret = false;
-          this.setError(fieldName, params.errorMessage);
-        }else {
-          delete this.errors[fieldName];
-        }
-        break;
-      }
-      default:{
-
-      }
+      this.setState( {errors: Validator.getErrorMessages()} );
     }
     return ret;
   }
@@ -185,31 +122,21 @@ class Login extends Component {
   }
 
   onBlurField(e) {
-    let {name, value} = e.target;
+    let {name, value} = e.target,
+      valid = true;
+    let { login, password } = this.state;
+    Validator.setData({login, password});
 
-    if( Object.size(this.validateRules) ) {
+    valid = valid = Validator.validate(name);
+    if( !valid ) {
+      this.setState( {errors: Validator.getErrorMessages()} );
+    } else{
+      //TODO: correct clear field error message
 
-      if( this.validateRules.hasOwnProperty(name) && this.validateRules[name]['required'] ) {
-        for( let ruleName in this.validateRules[name]['rules'] ) {
-          let ruleParams = this.validateRules[name]['rules'][ruleName];
-
-          switch ( name ) {
-            case 'login':{
-              this.validateField('login', value, ruleName, ruleParams );
-              break;
-            }
-            case 'password':{
-              this.validateField('password', value, ruleName, ruleParams );
-              break;
-            }
-            default:{
-            }
-          }
-        }
-      }
+      let newStateErrors = this.state.errors;
+      delete newStateErrors[name];
+      this.setState(newStateErrors);
     }
-
-    this.setState({errors: this.errors});
 
   }
 
